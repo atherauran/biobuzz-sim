@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIOBUZZ Field Sim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="src/style.css">
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+    "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+} }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="loading">Loading field…</div>
+
+<div class="hud" id="corner"><div>Mode <b id="modeLbl">—</b></div><div>View <b id="viewLbl">—</b></div><div><kbd>Esc</kbd> menu · <kbd>Tab</kbd> swap view</div></div>
+<div class="hud" id="fps"></div>
+
+<div class="hud" id="board">
+  <div class="side red"><div class="score" id="sRed">0</div><div class="sub">Tips <b id="tRed">0</b></div><div class="sub">Nectar <b id="hRed">0</b></div></div>
+  <div class="mid"><div id="clock">2:00</div><div id="phase">Flowers locked</div></div>
+  <div class="side blue"><div class="score" id="sBlue">0</div><div class="sub">Tips <b id="tBlue">0</b></div><div class="sub">Nectar <b id="hBlue">0</b></div></div>
+</div>
+<div class="hud" id="toasts"></div>
+<div id="countdown" hidden></div>
+
+<div class="hud pp" id="pp1" hidden></div>
+<div class="hud pp" id="pp2" hidden></div>
+
+<div class="overlay" id="menu" hidden>
+  <div class="card">
+    <div class="brand">
+      <div>
+        <h1>BIO<span>BUZZ</span><br>Field Sim</h1>
+      </div>
+      <div class="opts">
+        <label class="l">Mode</label><div class="seg" data-opt="mode"><button data-v="match">Match (2:00 teleop)</button><button data-v="free">Free drive</button></div>
+        <label class="l">Players</label><div class="seg" data-opt="players"><button data-v="1">1</button><button data-v="2">2 (shared keyboard)</button></div>
+        <label class="l">P1 alliance</label><div class="seg" data-opt="p1"><button data-v="red">Red</button><button data-v="blue">Blue</button></div>
+        <label class="l" id="p2l">P2 plays</label><div class="seg" data-opt="p2"><button data-v="partner">Partner</button><button data-v="opponent">Opponent</button></div>
+        <label class="l">Stand at</label><div class="seg" data-opt="view"><button data-v="red">Red alliance area</button><button data-v="blue">Blue alliance area</button></div>
+        <label class="l">Drive</label><div class="seg" data-opt="drive"><button data-v="field">Field-centric</button><button data-v="robot">Robot-centric</button></div>
+        <label class="l" for="oPol">Tip: pollen</label><div class="range"><input type="range" id="oPol" min="3" max="20" step="1"><output id="oPolV"></output></div>
+        <label class="l" for="oNec">Tip: nectar</label><div class="range"><input type="range" id="oNec" min="2" max="12" step="1"><output id="oNecV"></output></div>
+        <label class="l" for="oEye">Eye height</label><div class="range"><input type="range" id="oEye" min="1.2" max="2.6" step="0.05"><output id="oEyeV"></output></div>
+        <label class="l">Extras</label><div class="seg" data-opt="extras"><button data-v="arc" data-toggle="1">Trajectory arc</button><button data-v="sound" data-toggle="1">Sound</button></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="startBtn">Start</button>
+        <button class="btn" id="resumeBtn" hidden>Resume</button>
+      </div>
+    </div>
+    <div class="help">
+      <h2>Controls</h2>
+      <table class="ktab">
+        <thead><tr><th></th><th>P1</th><th>P2</th></tr></thead>
+        <tbody>
+          <tr><td>Drive</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></td></tr>
+          <tr><td>Turn</td><td><kbd>Q</kbd> <kbd>E</kbd></td><td><kbd>,</kbd> <kbd>.</kbd></td></tr>
+          <tr><td>Precision (hold)</td><td><kbd>L Shift</kbd></td><td><kbd>R Shift</kbd></td></tr>
+          <tr><td>Intake on/off</td><td><kbd>F</kbd></td><td><kbd>;</kbd></td></tr>
+          <tr><td>Outtake (hold)</td><td><kbd>R</kbd></td><td><kbd>'</kbd></td></tr>
+          <tr><td>Launch</td><td><kbd>Space</kbd></td><td><kbd>Enter</kbd> / <kbd>/</kbd></td></tr>
+          <tr><td>FLOWER arm drop</td><td><kbd>V</kbd></td><td><kbd>L</kbd></td></tr>
+          <tr><td>Cycle next ball</td><td><kbd>C</kbd></td><td><kbd>P</kbd></td></tr>
+          <tr><td>Auto-aim on/off</td><td><kbd>T</kbd></td><td><kbd>\</kbd></td></tr>
+          <tr><td>Flywheel − / +</td><td><kbd>Z</kbd> <kbd>X</kbd></td><td><kbd>[</kbd> <kbd>]</kbd></td></tr>
+          <tr><td>Hood − / +</td><td><kbd>1</kbd> <kbd>2</kbd></td><td><kbd>-</kbd> <kbd>=</kbd></td></tr>
+          <tr><td>Human player: enter NECTAR</td><td><kbd>H</kbd></td><td><kbd>K</kbd></td></tr>
+        </tbody>
+      </table>
+      <p class="notes">With one player, both key sets drive P1. The robot holds 4 elements and rejects opponent NECTAR.</p>
+      <p class="notes"><b>Scoring:</b> HIVE TIP 20 · element left in up CELL 2 · owned FLOWER 2 per element · bottom NECTAR bonus 5 · GARDEN 1 · PARK in LOADING ZONE 5. Human player NECTAR: one per TIP, all remaining at 1:00. NECTAR in a FLOWER before 1:00 is a MAJOR FOUL.</p>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="results" hidden>
+  <div class="card"><div class="res">
+    <h2 id="resTitle">Final</h2>
+    <div style="overflow-x:auto"><table class="rtab" id="resTable"></table></div>
+    <div class="actions"><button class="btn primary" id="againBtn">Play again</button><button class="btn" id="menuBtn">Menu</button></div>
+  </div></div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

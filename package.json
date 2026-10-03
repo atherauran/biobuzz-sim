@@ -1,0 +1,11 @@
+{
+  "name": "biobuzz-field-sim",
+  "version": "1.0.0",
+  "description": "3D driving simulator for the FTC 2026-27 BIOBUZZ game (Competition Manual V1)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve -l 8000 ."
+  },
+  "license": "MIT"
+}
