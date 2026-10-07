@@ -66,14 +66,15 @@ export class Hud {
       else if (Math.abs(a.err) < 4 && a.reachable) aimChip = `<span class="chip ok">on target ${a.err.toFixed(0)}°</span>`;
       else aimChip = `<span class="chip">${!a.reachable ? 'too far' : 'turn ' + (a.err > 0 ? 'right' : 'left') + ' ' + Math.abs(a.err).toFixed(0) + '°'}</span>`;
     } else aimChip = '<span class="chip">HIVE tipping…</span>';
+    const trim = (v, unit, d = 0) => (robot.auto && v ? ` <small>(${v > 0 ? '+' : ''}${v.toFixed(d)}${unit})</small>` : '');
     const html = `
       <div class="top"><span class="name">${key.toUpperCase()} · ${robot.alliance} ${robot.label}</span><span class="tag">${robot.disabled ? 'disabled' : robot.count + '/4 held'}</span></div>
       <div class="slots">${slots}<span style="flex:1"></span>${aimChip}</div>
       <div class="stats">
         <div class="stat"><span>Intake <kbd>${k.intake}</kbd></span><b><span class="chip ${robot.intakeOn ? 'on' : ''}">${robot.intakeOn ? 'on' : 'off'}</span></b></div>
         <div class="stat"><span>Aim <kbd>${k.auto}</kbd></span><b><span class="chip ${robot.auto ? 'on' : ''}">${robot.auto ? 'auto' : 'manual'}</span></b></div>
-        <div class="stat"><span>Flywheel</span><b>${a ? a.speed.toFixed(2) : robot.power.toFixed(2)} m/s</b></div>
-        <div class="stat"><span>Hood</span><b>${a ? a.hood : robot.hood}°</b></div>
+        <div class="stat"><span>Flywheel</span><b>${a ? a.speed.toFixed(2) : robot.power.toFixed(2)} m/s${trim(robot.powerOff, '', 2)}</b></div>
+        <div class="stat"><span>Hood</span><b>${a ? a.hood : robot.hood}°${trim(robot.hoodOff, '°')}</b></div>
         <div class="stat"><span>Arm <kbd>${k.arm}</kbd></span><b>${robot.arm.phase === 'idle' ? 'ready' : robot.arm.phase}</b></div>
         <div class="stat"><span>NECTAR <kbd>${k.hp}</kbd></span><b>${hpText}</b></div>
       </div>`;

@@ -27,6 +27,8 @@ export class Robot {
     this.auto = true;
     this.power = ROBOT.power.def;
     this.hood = ROBOT.hood.def;
+    this.powerOff = 0;                   // auto-aim trims, added on top of the solved shot
+    this.hoodOff = 0;
     this.cool = 0;
     this.outTimer = 0;
     this.arm = { phase: 'idle', t: 0, ball: null, angle: ROBOT.arm.rest };
@@ -181,8 +183,17 @@ export class Robot {
   // ---- actions -------------------------------------------------------
   toggleIntake() { if (!this.disabled) this.intakeOn = !this.intakeOn; }
   toggleAuto() { this.auto = !this.auto; }
-  adjPower(d) { this.power = clamp(+(this.power + d * ROBOT.power.step).toFixed(2), ROBOT.power.min, ROBOT.power.max); }
-  adjHood(d) { this.hood = clamp(this.hood + d * ROBOT.hood.step, ROBOT.hood.min, ROBOT.hood.max); }
+  // In auto-aim the keys trim the solved shot; in manual they set the shot directly.
+  adjPower(d) {
+    const step = d * ROBOT.power.step;
+    if (this.auto) this.powerOff = +(this.powerOff + step).toFixed(2);
+    else this.power = clamp(+(this.power + step).toFixed(2), ROBOT.power.min, ROBOT.power.max);
+  }
+  adjHood(d) {
+    const step = d * ROBOT.hood.step;
+    if (this.auto) this.hoodOff += step;
+    else this.hood = clamp(this.hood + step, ROBOT.hood.min, ROBOT.hood.max);
+  }
   cycle() { if (this.queue.length > 1) this.queue.push(this.queue.shift()); }
 
   shoot() {
@@ -347,7 +358,9 @@ export class Robot {
     let hood = this.hood, speed = this.power, reachable = true;
     if (this.auto && target) {
       const s = solveShot(exit, target.point, ROBOT);
-      hood = Math.round(s.hood); speed = s.speed; reachable = s.reachable;
+      hood = clamp(Math.round(s.hood) + this.hoodOff, ROBOT.hood.min, ROBOT.hood.max);
+      speed = clamp(s.speed + this.powerOff, ROBOT.power.min, ROBOT.power.max);
+      reachable = s.reachable;
     }
     const th = hood * Math.PI / 180;
     const vel = this.fwd.clone().multiplyScalar(speed * Math.cos(th)).addScaledVector(up, speed * Math.sin(th));

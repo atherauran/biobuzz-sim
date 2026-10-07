@@ -39,6 +39,8 @@ Desktop Chrome, Edge, Firefox or Safari. Keyboard only.
 | Hood − / + | `1` / `2` | `-` / `=` |
 | Human player: enter NECTAR | `H` | `K` |
 
+In auto-aim, the flywheel and hood keys trim the solved shot instead (the offset is shown in the panel and keeps applying as you move); in manual mode they set the shot directly.
+
 `Esc` opens the menu, `Tab` swaps between the red and blue driver views.
 
 ## What's modeled (and where it comes from)
